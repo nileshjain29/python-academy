@@ -586,17 +586,22 @@ async function getHint(){
 
 
 async function geminiRequest(key, body) {
-  const models = ['gemini-1.5-flash','gemini-1.5-flash-002','gemini-2.0-flash','gemini-2.0-flash-lite','gemini-pro'];
+  const models = ['gemini-1.5-flash-002','gemini-1.5-flash','gemini-1.5-pro-002','gemini-1.5-pro'];
   for (const model of models) {
     try {
-      const url = 'https://generativelanguage.googleapis.com/v1/models/'+model+':generateContent?key='+key;
+      const url = 'https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+key;
       const r = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
       const d = await r.json();
-      if (d.error && (d.error.code === 404 || d.error.status === 'NOT_FOUND')) continue;
+      if (d.error) {
+        const code = d.error.code||0;
+        const msg  = d.error.message||'';
+        if (code===404 || msg.includes('not found') || msg.includes('not supported')) continue;
+        return d;
+      }
       return d;
     } catch(e) { continue; }
   }
-  throw new Error('No working Gemini model found. Please check your API key at aistudio.google.com');
+  return {error:{message:'No working Gemini model found. Please create a new API key at aistudio.google.com/app/apikey'}};
 }
 async function callClaude(sys,areaId,hist){
   const typEl=addTyping(areaId);
