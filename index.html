@@ -127,12 +127,12 @@ input[type=text]:focus,input[type=password]:focus{border-color:#3b82f6}
     </div>
     <div id="kidLoginForm">
       <input type="text" id="kidName" placeholder="Your name (e.g. Max)" maxlength="20" onblur="prefillApiKey(this.value.trim())" style="width:100%;margin-bottom:8px;display:block">
-      <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px">Google Gemini API Key — <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#60a5fa">get free key here</a>:</div>
-      <input type="password" id="apiKeyInput" placeholder="AIzaSy... (paste your key here)" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:10px 14px;color:#fffffe;font-size:13px;font-family:inherit;outline:none;margin-bottom:4px;display:block">
+      <div style="font-size:11px;color:#64748b;margin-bottom:4px">Google Gemini API Key — <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#60a5fa">get free key here</a>:</div>
+      <input type="password" id="apiKeyInput" placeholder="AIzaSy... (paste your Gemini key here)" style="width:100%;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 14px;color:#1e293b;font-size:13px;font-family:inherit;outline:none;margin-bottom:6px;display:block">
       <div style="display:flex;gap:6px;margin-bottom:4px">
-        <button type="button" onclick="testApiKey()" style="flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#a0aec0;font-size:12px;cursor:pointer;font-family:inherit">🔑 Test Key</button>
+        <button type="button" onclick="testApiKey()" style="width:100%;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:9px;color:#475569;font-size:12px;cursor:pointer;font-family:inherit;margin-bottom:6px;display:block">🔑 Test Key</button>
       </div>
-      <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-bottom:10px" id="keyTestResult">100% free. Saved on this device only.</div>
+      <div style="font-size:11px;color:#64748b;margin-bottom:10px" id="keyTestResult">100% free. Saved on this device only.</div>
       <button class="btn btn-blue" style="width:100%;padding:12px;font-size:14px" onclick="loginKid()">🚀 Start Adventure!</button>
     </div>
     <div id="parentLoginForm" style="display:none">
@@ -617,7 +617,7 @@ async function testApiKey() {
         resultEl.style.color='#f87171'; return;
       }
       resultEl.textContent = '✅ Key works! Using model: '+model;
-      resultEl.style.color='#48bb78'; return;
+      resultEl.style.color='#16a34a'; return;
     } catch(e) { continue; }
   }
   resultEl.textContent = '❌ All models failed. Key may be restricted or region not supported.';
