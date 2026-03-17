@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python Academy">
+<title>Python Academy 🐍</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f4f8;color:#1a202c;min-height:100vh}
+#app{max-width:880px;margin:0 auto;padding:1rem}
+.screen{display:none}.screen.active{display:block}
+.btn{border:none;border-radius:10px;padding:9px 18px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:opacity 0.15s,transform 0.1s}
+.btn:hover{opacity:0.85}.btn:active{transform:scale(0.96)}
+.btn-blue{background:#3b82f6;color:#fff}
+.btn-green{background:#10b981;color:#fff}
+.btn-amber{background:#f59e0b;color:#fff}
+.btn-red{background:#ef4444;color:#fff}
+.btn-gray{background:#e2e8f0;color:#475569;border:1px solid #cbd5e1}
+.btn-purple{background:#7c3aed;color:#fff}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:1rem 1.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
+.nav{display:flex;align-items:center;gap:8px;padding:0.6rem 0;margin-bottom:1rem;border-bottom:1px solid #e2e8f0;flex-wrap:wrap}
+.nav-brand{font-size:17px;font-weight:700;flex:1;color:#1e293b}
+.pill-sm{font-size:11px;padding:4px 10px;border-radius:20px;background:#f1f5f9;color:#64748b;font-weight:600}
+.pill-xp{background:#fef3c7;color:#92400e}
+.xp-bar-wrap{background:#e2e8f0;border-radius:20px;height:8px;overflow:hidden;margin:4px 0}
+.xp-bar{height:100%;border-radius:20px;background:linear-gradient(90deg,#10b981,#3b82f6);transition:width 0.6s}
+h1{font-size:26px;font-weight:800}h2{font-size:20px;font-weight:700}h3{font-size:15px;font-weight:700}
+
+.level-scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;margin-bottom:1rem;-webkit-overflow-scrolling:touch}
+.level-scroll::-webkit-scrollbar{height:3px}.level-scroll::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px}
+.lcard{min-width:130px;background:#fff;border:2px solid #e2e8f0;border-radius:14px;padding:1rem;cursor:pointer;text-align:center;flex-shrink:0;transition:all 0.15s;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
+.lcard:hover{border-color:#93c5fd;transform:translateY(-2px)}.lcard.locked{opacity:0.4;cursor:not-allowed}.lcard.selected{border-color:#3b82f6;background:#eff6ff}
+.lcard-icon{font-size:28px;margin-bottom:5px}.lcard-name{font-size:12px;font-weight:700;margin-bottom:2px;color:#1e293b}.lcard-sub{font-size:10px;color:#94a3b8}
+
+.topic-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:1.2rem}
+.tcard{background:#fff;border:2px solid #e2e8f0;border-radius:12px;padding:0.9rem;cursor:pointer;transition:all 0.15s;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.tcard:hover{border-color:#93c5fd;transform:translateY(-1px)}.tcard.done{border-color:#10b981;background:#f0fdf4}.tcard.selected{border-color:#3b82f6;background:#eff6ff}
+.tcard-icon{font-size:22px;margin-bottom:5px}.tcard-name{font-size:12px;font-weight:700;margin-bottom:2px;color:#1e293b}.tcard-desc{font-size:10px;color:#94a3b8}
+
+.chat-wrap{background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;min-height:260px;max-height:360px;overflow-y:auto;padding:1rem;margin-bottom:0.75rem;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
+.msg{display:flex;gap:8px;align-items:flex-start}.msg.user{flex-direction:row-reverse}
+.av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.av.bot{background:#dbeafe;color:#1d4ed8}.av.usr{background:#d1fae5;color:#065f46}
+.bub{max-width:82%;padding:9px 13px;border-radius:14px;font-size:13px;line-height:1.6;background:#fff;border:1px solid #e2e8f0;color:#1e293b;box-shadow:0 1px 2px rgba(0,0,0,0.04)}
+.msg.user .bub{background:#dbeafe;border-color:#bfdbfe}
+.bub code{font-family:'SF Mono',Menlo,monospace;background:#f1f5f9;padding:2px 5px;border-radius:4px;font-size:11px;color:#7c3aed}
+.bub pre{font-family:'SF Mono',Menlo,monospace;background:#1e293b;color:#e2e8f0;padding:10px;border-radius:8px;font-size:11px;margin:6px 0;overflow-x:auto;white-space:pre-wrap}
+.typing-dots{display:flex;gap:5px;align-items:center;padding:10px 14px;background:#fff;border-radius:14px;border:1px solid #e2e8f0;width:fit-content}
+.dot{width:6px;height:6px;border-radius:50%;background:#94a3b8;animation:blink 1.2s infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+
+.code-panel{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:0.9rem;margin-bottom:0.75rem}
+.code-panel textarea,.turtle-code-area textarea{width:100%;font-family:'SF Mono',Menlo,monospace;font-size:12px;background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:8px;padding:10px;resize:vertical}
+.code-panel textarea{height:90px}.turtle-code-area textarea{height:75px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input[type=text],input[type=password]{flex:1;min-width:120px;font-size:13px;padding:9px 13px;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff;color:#1e293b;font-family:inherit;outline:none}
+input[type=text]:focus,input[type=password]:focus{border-color:#3b82f6}
+
+.turtle-wrap{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:0.9rem;margin-bottom:0.75rem}
+#turtleCanvas{width:100%;max-width:460px;height:300px;border:1px solid #e2e8f0;border-radius:10px;background:#fff;display:block;margin:0 auto}
+.turtle-controls{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px;margin-top:8px}
+.turtle-btn{font-size:11px;padding:7px 8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;color:#1e293b;font-family:inherit;font-weight:500}
+.turtle-btn:hover{background:#eff6ff;border-color:#93c5fd}
+.color-row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center}
+.cbox{width:24px;height:24px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:border-color 0.15s;flex-shrink:0}
+.cbox:hover,.cbox.active{border-color:#1e293b}
+
+.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(95px,1fr));gap:10px;margin-bottom:1.2rem}
+.badge-card{text-align:center;padding:0.8rem;background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.badge-card.earned{border-color:#f59e0b;background:#fffbeb}
+.badge-card.locked{opacity:0.3}
+.badge-icon{font-size:28px;margin-bottom:4px}.badge-name{font-size:10px;font-weight:700;margin-bottom:1px;color:#1e293b}.badge-desc{font-size:9px;color:#94a3b8}
+
+.quiz-card{background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:1.25rem;margin-bottom:1rem;box-shadow:0 2px 6px rgba(0,0,0,0.06)}
+.quiz-q{font-size:15px;font-weight:700;margin-bottom:1rem;line-height:1.5;color:#1e293b}
+.quiz-options{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{padding:11px 15px;border:1.5px solid #e2e8f0;border-radius:10px;cursor:pointer;font-size:13px;background:#fff;text-align:left;font-family:inherit;font-weight:500;transition:all 0.15s;color:#1e293b}
+.quiz-opt:hover{background:#eff6ff;border-color:#93c5fd}
+.quiz-opt.correct{background:#d1fae5;border-color:#10b981;color:#065f46}
+.quiz-opt.wrong{background:#fee2e2;border-color:#ef4444;color:#991b1b}
+.quiz-progress{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
+.q-dot{width:12px;height:12px;border-radius:50%;background:#e2e8f0}
+.q-dot.done{background:#10b981}.q-dot.correct-dot{background:#10b981}.q-dot.wrong-dot{background:#ef4444}.q-dot.current{background:#3b82f6}
+.streak-badge{display:inline-block;background:#fef3c7;color:#92400e;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px}
+
+.dashboard-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:1.2rem}
+.stat-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:1rem;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.stat-num{font-size:22px;font-weight:800;margin-bottom:3px;color:#1e293b}.stat-label{font-size:11px;color:#94a3b8}
+.activity-row{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid #f1f5f9;font-size:13px}
+.progress-world{margin-bottom:1rem}
+.pw-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;font-size:13px;font-weight:600}
+.pw-bar{background:#e2e8f0;border-radius:20px;height:6px;overflow:hidden}
+.pw-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,#10b981,#3b82f6)}
+
+.celebrate{text-align:center;padding:2rem 1rem}
+.cel-icon{font-size:64px;margin-bottom:0.75rem;animation:pop 0.4s ease}
+@keyframes pop{0%{transform:scale(0.5)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+.xp-gain-badge{display:inline-block;background:#fef3c7;color:#92400e;font-size:14px;font-weight:700;padding:5px 16px;border-radius:20px;margin:0.5rem 0}
+.new-badge-reveal{background:#fffbeb;border:2px solid #f59e0b;border-radius:14px;padding:1rem;margin:0.8rem auto;max-width:240px;text-align:center}
+
+.login-wrap{max-width:380px;margin:2rem auto;text-align:center}
+.tab-row{display:flex;gap:6px;margin-bottom:1.2rem}
+.tab{padding:8px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid #e2e8f0;color:#64748b;background:#fff;font-family:inherit;transition:all 0.15s}
+.tab.active{background:#3b82f6;color:#fff;border-color:#3b82f6}
+
+.quiz-feedback{margin-top:10px;padding:12px;border-radius:10px;font-size:13px;font-weight:500}
+.quiz-feedback.correct{background:#d1fae5;color:#065f46}
+.quiz-feedback.wrong{background:#fee2e2;color:#991b1b}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- LOGIN -->
+<div id="loginScreen" class="screen active">
+  <div class="login-wrap">
+    <div style="font-size:56px;margin-bottom:0.5rem">🐍</div>
+    <h1 style="margin-bottom:0.25rem;color:#1e293b">Python Academy</h1>
+    <p style="color:#64748b;font-size:13px;margin-bottom:1.5rem">Learn Python step by step — fun & interactive!</p>
+    <div class="tab-row" style="justify-content:center">
+      <button class="tab active" onclick="setLoginMode('kid')" id="tabKid">I am the student</button>
+      <button class="tab" onclick="setLoginMode('parent')" id="tabParent">I am the parent</button>
+    </div>
+    <div id="kidLoginForm">
+      <input type="text" id="kidName" placeholder="Your name (e.g. Max)" maxlength="20" style="width:100%;margin-bottom:10px;display:block">
+      <button class="btn btn-blue" style="width:100%" onclick="loginKid()">Start learning! 🚀</button>
+    </div>
+    <div id="parentLoginForm" style="display:none">
+      <input type="text" id="parentKidName" placeholder="Child's name" maxlength="20" style="width:100%;margin-bottom:8px;display:block">
+      <input type="password" id="parentPin" placeholder="Parent PIN (default: 1234)" maxlength="6" style="width:100%;margin-bottom:8px;display:block">
+      <button class="btn btn-purple" style="width:100%" onclick="loginParent()">Open dashboard 📊</button>
+    </div>
+    <p style="font-size:11px;color:#94a3b8;margin-top:1rem">Progress saves automatically in your browser.</p>
+  </div>
+</div>
+
+<!-- HOME -->
+<div id="homeScreen" class="screen">
+  <div class="nav">
+    <span class="nav-brand">🐍 Python Academy</span>
+    <span class="pill-sm" id="navName">Coder</span>
+    <span class="pill-sm pill-xp" id="navXP">⭐ 0 XP</span>
+    <button class="btn btn-gray" style="padding:5px 10px;font-size:11px" onclick="showBadges()">🏅</button>
+    <button class="btn btn-gray" style="padding:5px 10px;font-size:11px" onclick="show('loginScreen')">Exit</button>
+  </div>
+  <div style="margin-bottom:1rem">
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;margin-bottom:4px">
+      <span id="levelLabel">Level 1</span><span id="xpNextLabel">100 XP to next level</span>
+    </div>
+    <div class="xp-bar-wrap"><div class="xp-bar" id="homeXpBar" style="width:2%"></div></div>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
+    <button class="btn btn-amber" onclick="startQuiz()">⚡ Quick Quiz</button>
+    <button class="btn btn-green" onclick="showTurtle()">🐢 Draw with Python</button>
+    <button class="btn btn-gray" onclick="showBadges()">🏅 My Badges</button>
+  </div>
+  <p style="font-size:12px;color:#64748b;margin-bottom:8px;font-weight:600">Choose your world:</p>
+  <div class="level-scroll" id="levelScroll"></div>
+  <div style="text-align:center;margin-top:0.75rem">
+    <button class="btn btn-blue" onclick="goTopics()">Explore topics →</button>
+  </div>
+</div>
+
+<!-- TOPICS -->
+<div id="topicScreen" class="screen">
+  <div class="nav">
+    <button class="btn btn-gray" onclick="show('homeScreen')">← Home</button>
+    <span class="nav-brand" id="topicWorldName">World</span>
+    <span class="pill-sm pill-xp" id="topicXP">⭐ 0 XP</span>
+    <button class="btn btn-amber" style="padding:5px 10px;font-size:11px" onclick="startQuiz()">⚡ Quiz</button>
+  </div>
+  <div class="topic-grid" id="topicGrid"></div>
+  <div class="row">
+    <button class="btn btn-blue" onclick="startSelected()">Start lesson →</button>
+    <button class="btn btn-green" onclick="showTurtle()">🐢 Draw with Python</button>
+  </div>
+</div>
+
+<!-- LESSON -->
+<div id="lessonScreen" class="screen">
+  <div class="nav">
+    <button class="btn btn-gray" onclick="show('topicScreen')">← Topics</button>
+    <span class="nav-brand" id="lessonName">Lesson</span>
+    <span class="pill-sm pill-xp" id="lessonXP">⭐ 0 XP</span>
+    <button class="btn btn-amber" style="padding:5px 10px;font-size:11px" onclick="startQuiz()">⚡ Quiz</button>
+  </div>
+  <div class="chat-wrap" id="chatWrap"></div>
+  <div class="code-panel" id="codePanel" style="display:none">
+    <div style="font-size:11px;color:#64748b;margin-bottom:6px;font-weight:600">Write your Python code here:</div>
+    <textarea id="codeIn" placeholder="# Type your code here..."></textarea>
+    <div class="row" style="margin-top:8px">
+      <button class="btn btn-green" onclick="submitCode()">▶ Run code</button>
+      <button class="btn btn-amber" onclick="getHint()">💡 Hint</button>
+      <button class="btn btn-gray" onclick="document.getElementById('codeIn').value=''">Clear</button>
+    </div>
+  </div>
+  <div class="row" style="margin-top:0.5rem">
+    <input type="text" id="chatIn" placeholder="Ask Cody anything..." onkeydown="if(event.key==='Enter')sendChat()">
+    <button class="btn btn-blue" onclick="sendChat()">Send</button>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div id="quizScreen" class="screen">
+  <div class="nav">
+    <button class="btn btn-gray" onclick="show('homeScreen')">← Home</button>
+    <span class="nav-brand">⚡ Quiz Challenge</span>
+    <span class="pill-sm pill-xp" id="quizXP">⭐ 0 XP</span>
+    <span class="streak-badge" id="streakBadge">🔥 0</span>
+  </div>
+  <div class="tab-row" id="quizLevelTabs">
+    <button class="tab active" onclick="setQuizLevel('easy',this)">Easy</button>
+    <button class="tab" onclick="setQuizLevel('medium',this)">Medium</button>
+    <button class="tab" onclick="setQuizLevel('hard',this)">Hard</button>
+  </div>
+  <div id="quizLoading" style="text-align:center;padding:3rem;color:#64748b">
+    <div style="font-size:40px;margin-bottom:0.75rem">🤔</div>
+    <div style="font-weight:600">Generating your quiz...</div>
+    <div style="font-size:12px;margin-top:4px">Cody is making questions just for you!</div>
+  </div>
+  <div id="quizContent" style="display:none">
+    <div class="quiz-progress" id="quizDots"></div>
+    <div class="quiz-card">
+      <div style="font-size:11px;color:#94a3b8;margin-bottom:8px;font-weight:600" id="quizTopic">Topic</div>
+      <div class="quiz-q" id="quizQ">Question here</div>
+      <div id="quizCodeSnippet" style="display:none;margin-bottom:12px">
+        <pre id="quizCode" style="font-family:'SF Mono',Menlo,monospace;font-size:12px;background:#1e293b;color:#e2e8f0;padding:10px;border-radius:8px;overflow-x:auto"></pre>
+      </div>
+      <div class="quiz-options" id="quizOpts"></div>
+      <div id="quizFeedback" class="quiz-feedback" style="display:none"></div>
+    </div>
+    <div id="quizNext" style="display:none;text-align:center">
+      <button class="btn btn-blue" onclick="nextQuestion()">Next question →</button>
+    </div>
+  </div>
+  <div id="quizSummary" style="display:none;text-align:center;padding:2rem 1rem">
+    <div style="font-size:56px;margin-bottom:0.75rem" id="summaryIcon">🎉</div>
+    <h2 id="summaryTitle" style="margin-bottom:0.5rem">Quiz done!</h2>
+    <p style="color:#64748b;margin:6px 0;font-size:14px" id="summaryScore"></p>
+    <div class="xp-gain-badge" id="summaryXP">+XP earned!</div>
+    <div style="margin-top:1.5rem;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-blue" onclick="startQuiz()">Try again</button>
+      <button class="btn btn-green" onclick="show('homeScreen')">Home</button>
+    </div>
+  </div>
+</div>
+
+<!-- TURTLE -->
+<div id="turtleScreen" class="screen">
+  <div class="nav">
+    <button class="btn btn-gray" onclick="show('homeScreen')">← Home</button>
+    <span class="nav-brand">🐢 Draw with Python</span>
+    <span class="pill-sm pill-xp" id="turtleXP">⭐ 0 XP</span>
+  </div>
+  <div class="turtle-wrap">
+    <canvas id="turtleCanvas" width="460" height="300"></canvas>
+    <div class="color-row" id="colorRow"></div>
+    <div class="turtle-controls" id="turtleControls"></div>
+    <div class="turtle-code-area" style="margin-top:8px">
+      <div style="font-size:11px;color:#64748b;margin-bottom:4px;font-weight:600">Turtle commands (one per line):</div>
+      <textarea id="turtleCode" placeholder="forward(100)&#10;right(90)&#10;forward(100)&#10;right(90)&#10;forward(100)&#10;right(90)&#10;forward(100)"></textarea>
+      <div class="row" style="margin-top:8px">
+        <button class="btn btn-green" onclick="runTurtleCode()">▶ Run</button>
+        <button class="btn btn-gray" onclick="resetTurtle()">Reset</button>
+        <button class="btn btn-amber" onclick="saveTurtleArt()">🎨 Save art (+10 XP)</button>
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:0.75rem">
+    <div style="font-size:13px;font-weight:700;margin-bottom:8px">Ask Cody about drawing:</div>
+    <div class="chat-wrap" id="turtleChatArea" style="min-height:100px;max-height:200px"></div>
+    <div class="row" style="margin-top:8px">
+      <input type="text" id="turtleAsk" placeholder="How do I draw a rainbow?" onkeydown="if(event.key==='Enter')askTurtle()">
+      <button class="btn btn-blue" onclick="askTurtle()">Ask</button>
+    </div>
+  </div>
+</div>
+
+<!-- BADGES -->
+<div id="badgeScreen" class="screen">
+  <div class="nav">
+    <button class="btn btn-gray" onclick="show('homeScreen')">← Home</button>
+    <span class="nav-brand">🏅 My Badges</span>
+    <span class="pill-sm pill-xp" id="badgeXP">⭐ 0 XP</span>
+  </div>
+  <div class="card" style="margin-bottom:1rem">
+    <div style="font-size:13px;font-weight:600;color:#64748b;margin-bottom:4px" id="badgeSummary">0 / 15 badges earned</div>
+    <div class="xp-bar-wrap"><div class="xp-bar" id="badgeXpBar" style="width:2%"></div></div>
+  </div>
+  <div class="badge-grid" id="badgeGrid"></div>
+</div>
+
+<!-- PARENT DASHBOARD -->
+<div id="parentScreen" class="screen">
+  <div class="nav">
+    <button class="btn btn-gray" onclick="show('loginScreen')">← Exit</button>
+    <span class="nav-brand">👨‍👩‍👧 Parent Dashboard</span>
+    <span class="pill-sm" id="parentChildName">Child</span>
+  </div>
+  <div class="tab-row" id="dashTabs">
+    <button class="tab active" onclick="showDashTab('overview',this)">Overview</button>
+    <button class="tab" onclick="showDashTab('progress',this)">Progress</button>
+    <button class="tab" onclick="showDashTab('activity',this)">Activity</button>
+    <button class="tab" onclick="showDashTab('settings',this)">Settings</button>
+  </div>
+  <div id="dashOverview">
+    <div class="dashboard-grid" id="statsGrid"></div>
+    <h3 style="margin-bottom:0.75rem">Recent activity</h3>
+    <div id="activityLog"></div>
+  </div>
+  <div id="dashProgress" style="display:none">
+    <h3 style="margin-bottom:1rem">World progress</h3>
+    <div id="worldProgress"></div>
+  </div>
+  <div id="dashActivity" style="display:none">
+    <h3 style="margin-bottom:0.8rem">Quiz performance</h3>
+    <div class="dashboard-grid">
+      <div class="stat-card"><div class="stat-num" id="dQuizTotal">0</div><div class="stat-label">Quizzes taken</div></div>
+      <div class="stat-card"><div class="stat-num" id="dQuizCorrect">0</div><div class="stat-label">Correct answers</div></div>
+      <div class="stat-card"><div class="stat-num" id="dQuizStreak">0</div><div class="stat-label">Best streak</div></div>
+      <div class="stat-card"><div class="stat-num" id="dQuizPct">0%</div><div class="stat-label">Accuracy</div></div>
+    </div>
+    <h3 style="margin:1rem 0 0.75rem">Badges earned</h3>
+    <div class="badge-grid" id="parentBadgeGrid"></div>
+  </div>
+  <div id="dashSettings" style="display:none">
+    <div class="card" style="margin-bottom:0.8rem">
+      <h3 style="margin-bottom:0.75rem">Change parent PIN</h3>
+      <input type="password" id="newPin1" placeholder="New PIN (4-6 digits)" style="width:100%;margin-bottom:8px;display:block">
+      <input type="password" id="newPin2" placeholder="Confirm PIN" style="width:100%;margin-bottom:10px;display:block">
+      <button class="btn btn-blue" onclick="savePin()">Save PIN</button>
+      <p style="font-size:12px;color:#10b981;margin-top:8px" id="pinMsg"></p>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:0.75rem">Reset progress</h3>
+      <p style="font-size:13px;color:#64748b;margin-bottom:0.75rem">This will erase all XP, lessons, and badges.</p>
+      <button class="btn btn-red" onclick="resetProgress()">Reset all progress</button>
+    </div>
+  </div>
+</div>
+
+<!-- CELEBRATE -->
+<div id="celebScreen" class="screen">
+  <div class="celebrate">
+    <div class="cel-icon" id="celIcon">🎉</div>
+    <h2 id="celTitle" style="margin-bottom:0.5rem">Awesome!</h2>
+    <p style="color:#64748b;margin:5px 0;font-size:14px" id="celMsg">Lesson complete!</p>
+    <div class="xp-gain-badge" id="xpGain">+20 XP!</div>
+    <div class="new-badge-reveal" id="newBadgeBox" style="display:none">
+      <div style="font-size:32px;margin-bottom:4px" id="newBadgeIcon">🏅</div>
+      <div style="font-size:14px;font-weight:700;margin:3px 0;color:#1e293b" id="newBadgeName">New Badge!</div>
+      <div style="font-size:12px;color:#92400e" id="newBadgeDesc"></div>
+    </div>
+    <div style="margin-top:1.5rem;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-blue" onclick="show('topicScreen')">More topics</button>
+      <button class="btn btn-amber" onclick="startQuiz()">⚡ Take a quiz</button>
+      <button class="btn btn-gray" onclick="show('homeScreen')">Home</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const WORLDS=[
+  {id:'w1',icon:'🌱',name:'Hello World',sub:'First steps',minXP:0,topics:[
+    {id:'print',icon:'🖨️',name:'Say Hello!',desc:'print() basics'},
+    {id:'vars',icon:'📦',name:'Magic Boxes',desc:'Variables'},
+    {id:'math',icon:'🔢',name:'Number Magic',desc:'+, -, *, /'},
+    {id:'input',icon:'🎤',name:'Ask Me!',desc:'input() function'},
+    {id:'comments',icon:'💬',name:'Secret Notes',desc:'# comments'}]},
+  {id:'w2',icon:'🤔',name:'Decision Maker',sub:'If/else logic',minXP:30,topics:[
+    {id:'if',icon:'❓',name:'Yes or No?',desc:'if statements'},
+    {id:'ifelse',icon:'🔀',name:'Choose!',desc:'if / else'},
+    {id:'elif',icon:'📊',name:'Many Choices',desc:'elif chains'},
+    {id:'compare',icon:'⚖️',name:'Compare Things',desc:'==, >, <, !='},
+    {id:'logic',icon:'🧠',name:'Smart Logic',desc:'and, or, not'}]},
+  {id:'w3',icon:'🔁',name:'Loop Land',sub:'Repeat magic',minXP:80,topics:[
+    {id:'forloop',icon:'🔄',name:'For Loops',desc:'repeat N times'},
+    {id:'whileloop',icon:'⏳',name:'While Loops',desc:'loop until done'},
+    {id:'range',icon:'📏',name:'range()',desc:'counting sequences'},
+    {id:'break',icon:'🛑',name:'Break & Continue',desc:'control loops'},
+    {id:'nested',icon:'🪆',name:'Loops in Loops',desc:'nested loops'}]},
+  {id:'w4',icon:'📋',name:'List Kingdom',sub:'Collections',minXP:150,topics:[
+    {id:'lists',icon:'📝',name:'Lists',desc:'[ ] collections'},
+    {id:'listops',icon:'🔧',name:'List Tools',desc:'append, remove'},
+    {id:'dicts',icon:'📖',name:'Dictionaries',desc:'key: value pairs'},
+    {id:'tuples',icon:'🔒',name:'Tuples',desc:'locked lists'},
+    {id:'sets',icon:'🫧',name:'Sets',desc:'unique collections'}]},
+  {id:'w5',icon:'🧩',name:'Function Factory',sub:'Build commands',minXP:250,topics:[
+    {id:'funcbasic',icon:'🏭',name:'My First Function',desc:'def basics'},
+    {id:'params',icon:'📨',name:'Parameters',desc:'pass data in'},
+    {id:'return',icon:'📤',name:'Return Values',desc:'get data back'},
+    {id:'scope',icon:'🔭',name:'Variable Scope',desc:'local vs global'},
+    {id:'lambda',icon:'⚡',name:'Lambda',desc:'tiny functions'}]},
+  {id:'w6',icon:'🔤',name:'String World',sub:'Text magic',minXP:350,topics:[
+    {id:'strbasic',icon:'✏️',name:'String Basics',desc:'text operations'},
+    {id:'strformat',icon:'🎨',name:'f-strings',desc:'format strings'},
+    {id:'strmethods',icon:'🛠️',name:'String Methods',desc:'.upper() etc'},
+    {id:'strslice',icon:'✂️',name:'Slicing',desc:'cut strings apart'},
+    {id:'regex',icon:'🔍',name:'Find in Text',desc:'search patterns'}]},
+  {id:'w7',icon:'🏛️',name:'OOP Castle',sub:'Objects & Classes',minXP:500,topics:[
+    {id:'classbasic',icon:'🏗️',name:'Classes',desc:'build blueprints'},
+    {id:'objects',icon:'🤖',name:'Objects',desc:'create instances'},
+    {id:'methods',icon:'⚙️',name:'Methods',desc:'object functions'},
+    {id:'inherit',icon:'👪',name:'Inheritance',desc:'extend classes'},
+    {id:'magic',icon:'✨',name:'Magic Methods',desc:'__init__ etc'}]},
+  {id:'w8',icon:'📁',name:'File & Error',sub:'Real programs',minXP:700,topics:[
+    {id:'fileread',icon:'📂',name:'Read Files',desc:'open & read'},
+    {id:'filewrite',icon:'💾',name:'Write Files',desc:'save data'},
+    {id:'trycatch',icon:'🛡️',name:'Try/Except',desc:'handle errors'},
+    {id:'exceptions',icon:'🚨',name:'Exceptions',desc:'error types'},
+    {id:'json',icon:'🗂️',name:'JSON Data',desc:'data format'}]},
+  {id:'w9',icon:'🚀',name:'Project Zone',sub:'Build real apps',minXP:900,topics:[
+    {id:'calculator',icon:'🧮',name:'Calculator App',desc:'build a calc'},
+    {id:'quizgame',icon:'❓',name:'Quiz Game',desc:'trivia game'},
+    {id:'guessnum',icon:'🎲',name:'Guessing Game',desc:'number game'},
+    {id:'todo',icon:'✅',name:'To-Do List',desc:'task manager'},
+    {id:'textgame',icon:'🎮',name:'Text Adventure',desc:'story game'}]},
+];
+
+const ALL_BADGES=[
+  {id:'first_lesson',icon:'🌟',name:'First Step!',desc:'Complete first lesson',type:'lessons',req:1},
+  {id:'five_lessons',icon:'🔥',name:'On Fire!',desc:'Complete 5 lessons',type:'lessons',req:5},
+  {id:'ten_lessons',icon:'💫',name:'Ten Done!',desc:'Complete 10 lessons',type:'lessons',req:10},
+  {id:'twenty_lessons',icon:'🌈',name:'Unstoppable!',desc:'Complete 20 lessons',type:'lessons',req:20},
+  {id:'xp100',icon:'⭐',name:'100 XP!',desc:'Earn 100 XP',type:'xp',req:100},
+  {id:'xp500',icon:'🌠',name:'500 XP Star!',desc:'Earn 500 XP',type:'xp',req:500},
+  {id:'xp1000',icon:'🏆',name:'1000 XP Champ!',desc:'Earn 1000 XP',type:'xp',req:1000},
+  {id:'xp2000',icon:'👑',name:'2000 XP King!',desc:'Earn 2000 XP',type:'xp',req:2000},
+  {id:'turtle_artist',icon:'🎨',name:'Turtle Artist!',desc:'Save turtle artwork',type:'special',key:'turtleSaved'},
+  {id:'coder',icon:'💻',name:'Real Coder!',desc:'Submit 10 code snippets',type:'codeSubmits',req:10},
+  {id:'quiz5',icon:'⚡',name:'Quiz Whiz!',desc:'Get 5 quiz answers right',type:'quizCorrect',req:5},
+  {id:'quiz20',icon:'🧠',name:'Quiz Master!',desc:'Get 20 correct answers',type:'quizCorrect',req:20},
+  {id:'streak5',icon:'🔥',name:'5 Streak!',desc:'5 correct in a row',type:'streak',req:5},
+  {id:'world1done',icon:'🌍',name:'World 1 Done!',desc:'Finish Hello World',type:'worldDone',req:'w1'},
+  {id:'world5done',icon:'🧩',name:'Function Wizard!',desc:'Finish Function Factory',type:'worldDone',req:'w5'},
+];
+
+let G={kidName:'',parentPin:'1234',xp:0,lessons:[],earnedBadges:[],codeSubmits:0,turtleSaved:false,quizCorrect:0,quizTotal:0,bestStreak:0,currentStreak:0,activity:[],selectedWorld:'w1',selectedTopic:null,history:[],turtleHistory:[]};
+let quizState={qs:[],idx:0,correct:0,level:'easy',streak:0};
+let turtle={x:230,y:150,angle:0,penDown:true,color:'#10b981',ctx:null};
+let loginMode='kid';
+
+function saveG(){try{const s={...G};delete s.history;delete s.turtleHistory;localStorage.setItem('pyacademy_v3_'+G.kidName,JSON.stringify(s));}catch(e){}}
+function loadG(name){
+  try{
+    const d=localStorage.getItem('pyacademy_v3_'+name);
+    if(d){const p=JSON.parse(d);G={...p,kidName:name,history:[],turtleHistory:[]};}
+    else{G={kidName:name,parentPin:'1234',xp:0,lessons:[],earnedBadges:[],codeSubmits:0,turtleSaved:false,quizCorrect:0,quizTotal:0,bestStreak:0,currentStreak:0,activity:[],selectedWorld:'w1',selectedTopic:null,history:[],turtleHistory:[]};}
+  }catch(e){}
+}
+
+function setLoginMode(m){
+  loginMode=m;
+  document.getElementById('tabKid').className='tab'+(m==='kid'?' active':'');
+  document.getElementById('tabParent').className='tab'+(m==='parent'?' active':'');
+  document.getElementById('kidLoginForm').style.display=m==='kid'?'block':'none';
+  document.getElementById('parentLoginForm').style.display=m==='parent'?'block':'none';
+}
+
+function loginKid(){
+  const n=document.getElementById('kidName').value.trim();
+  if(!n){alert('Please enter your name!');return;}
+  loadG(n);updateUI();renderWorlds();show('homeScreen');
+}
+
+function loginParent(){
+  const n=document.getElementById('parentKidName').value.trim();
+  const p=document.getElementById('parentPin').value.trim();
+  if(!n){alert('Enter child name');return;}
+  loadG(n);
+  if(p!==(G.parentPin||'1234')){alert('Wrong PIN. Default is 1234');return;}
+  showParentDash();
+}
+
+function updateUI(){
+  const xp=G.xp,lv=Math.floor(xp/100)+1,pct=((xp%100)/100)*100;
+  ['navXP','topicXP','lessonXP','turtleXP','badgeXP','quizXP'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent='⭐ '+xp+' XP';});
+  const nn=document.getElementById('navName');if(nn)nn.textContent=G.kidName||'Coder';
+  const hb=document.getElementById('homeXpBar');if(hb)hb.style.width=Math.min(100,pct)+'%';
+  const ll=document.getElementById('levelLabel');if(ll)ll.textContent='Level '+lv;
+  const xnl=document.getElementById('xpNextLabel');if(xnl)xnl.textContent=(100-xp%100)+' XP to next level';
+  const bb=document.getElementById('badgeXpBar');if(bb)bb.style.width=Math.min(100,pct)+'%';
+  const bs=document.getElementById('badgeSummary');if(bs)bs.textContent=G.earnedBadges.length+' / '+ALL_BADGES.length+' badges earned';
+  const sb=document.getElementById('streakBadge');if(sb)sb.textContent='🔥 '+quizState.streak;
+}
+
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');updateUI();}
+
+function renderWorlds(){
+  const c=document.getElementById('levelScroll');if(!c)return;c.innerHTML='';
+  WORLDS.forEach(w=>{
+    const locked=G.xp<w.minXP;
+    const d=document.createElement('div');
+    d.className='lcard'+(locked?' locked':'')+(G.selectedWorld===w.id?' selected':'');
+    const done=w.topics.filter(t=>G.lessons.includes(t.id)).length;
+    d.innerHTML=`<div class="lcard-icon">${w.icon}</div><div class="lcard-name">${w.name}</div><div class="lcard-sub">${done}/${w.topics.length} done</div>${locked?`<div style="font-size:10px;color:#94a3b8;margin-top:3px">🔒 ${w.minXP} XP</div>`:''}`;
+    if(!locked)d.onclick=()=>{G.selectedWorld=w.id;renderWorlds();};
+    c.appendChild(d);
+  });
+}
+
+function goTopics(){
+  renderTopics();
+  const w=WORLDS.find(x=>x.id===G.selectedWorld);
+  document.getElementById('topicWorldName').textContent=w?w.icon+' '+w.name:'Topics';
+  show('topicScreen');
+}
+
+function renderTopics(){
+  const g=document.getElementById('topicGrid');if(!g)return;g.innerHTML='';
+  const w=WORLDS.find(x=>x.id===G.selectedWorld);if(!w)return;
+  w.topics.forEach(t=>{
+    const done=G.lessons.includes(t.id);
+    const d=document.createElement('div');
+    d.className='tcard'+(done?' done':'')+(G.selectedTopic===t.id?' selected':'');
+    d.innerHTML=`<div class="tcard-icon">${t.icon}</div><div class="tcard-name">${t.name}</div><div class="tcard-desc">${t.desc}</div>${done?'<div style="font-size:10px;color:#10b981;margin-top:4px;font-weight:700">✓ Complete</div>':''}`;
+    d.onclick=()=>{G.selectedTopic=t.id;renderTopics();};
+    g.appendChild(d);
+  });
+}
+
+function startSelected(){
+  const w=WORLDS.find(x=>x.id===G.selectedWorld);if(!w)return;
+  if(!G.selectedTopic)G.selectedTopic=w.topics[0].id;
+  const t=w.topics.find(x=>x.id===G.selectedTopic);if(!t)return;
+  document.getElementById('lessonName').textContent=t.icon+' '+t.name;
+  G.history=[];
+  document.getElementById('chatWrap').innerHTML='';
+  document.getElementById('codePanel').style.display='block';
+  show('lessonScreen');
+  beginLesson(t,w);
+}
+
+const SYS=`You are Cody, a super-friendly Python tutor for a 7-year-old boy. Use very simple words. Max 3-4 sentences per reply unless showing code. Use fun examples: dinosaurs, Minecraft, pizza, superheroes, animals. Show code in triple-backtick python blocks. Teach ONE idea at a time. Always end with a small challenge or question. Celebrate wins: "Wow!", "Amazing!", "You're a coding superstar!". If the child clearly understands and completes a challenge, include the exact phrase "lesson complete" in your reply.`;
+
+async function beginLesson(t,w){
+  G.history=[{role:'user',content:`Hi Cody! I want to learn: ${t.name} (${t.desc}) from the ${w.name} world. I am 7 years old!`}];
+  await callClaude(SYS,'chatWrap',G.history);
+}
+
+async function sendChat(){
+  const inp=document.getElementById('chatIn');const txt=inp.value.trim();if(!txt)return;inp.value='';
+  addMsg(txt,'user','chatWrap');G.history.push({role:'user',content:txt});
+  await callClaude(SYS,'chatWrap',G.history);
+}
+
+async function submitCode(){
+  const code=document.getElementById('codeIn').value.trim();if(!code)return;
+  G.codeSubmits++;
+  addMsg('Here is my code:\n```python\n'+code+'\n```','user','chatWrap');
+  G.history.push({role:'user',content:`Please check my Python code:\n\`\`\`python\n${code}\n\`\`\``});
+  await callClaude(SYS,'chatWrap',G.history);
+  checkBadges();saveG();
+}
+
+async function getHint(){
+  G.history.push({role:'user',content:'Can I have a short hint please?'});
+  await callClaude(SYS,'chatWrap',G.history);
+}
+
+async function callClaude(sys,areaId,hist){
+  const typEl=addTyping(areaId);
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:hist})});
+    const data=await r.json();typEl.remove();
+    const reply=data.content?.[0]?.text||'Oops, something went wrong! Try again.';
+    hist.push({role:'assistant',content:reply});
+    addMsg(reply,'bot',areaId);
+    if(areaId==='chatWrap'&&reply.toLowerCase().includes('lesson complete')){
+      setTimeout(completedLesson,1400);
+    }
+  }catch(e){typEl.remove();addMsg('Connection issue — please try again!','bot',areaId);}
+}
+
+function completedLesson(){
+  const t=WORLDS.flatMap(w=>w.topics).find(x=>x.id===G.selectedTopic);
+  const isNew=!G.lessons.includes(G.selectedTopic);
+  if(isNew)G.lessons.push(G.selectedTopic);
+  const xpGain=isNew?30:10;G.xp+=xpGain;
+  G.activity.unshift({type:'lesson',name:t?t.name:'Lesson',xp:xpGain,time:Date.now()});
+  if(G.activity.length>30)G.activity.pop();
+  const newB=checkBadges();saveG();
+  document.getElementById('celIcon').textContent=rnd(['🎉','🌟','🏆','🚀','🦄','🎊','💥']);
+  document.getElementById('celTitle').textContent=rnd(['Incredible!','You crushed it!','Python superstar!','Amazing work!','Level up!']);
+  document.getElementById('celMsg').textContent='You finished: '+(t?t.name:'this lesson')+'!';
+  document.getElementById('xpGain').textContent='+'+xpGain+' XP earned!';
+  showNewBadge(newB);show('celebScreen');
+}
+
+function showNewBadge(b){
+  const box=document.getElementById('newBadgeBox');
+  if(b){box.style.display='block';document.getElementById('newBadgeIcon').textContent=b.icon;document.getElementById('newBadgeName').textContent='New Badge: '+b.name;document.getElementById('newBadgeDesc').textContent=b.desc;}
+  else box.style.display='none';
+}
+
+function checkBadges(){
+  let newB=null;
+  ALL_BADGES.forEach(b=>{
+    if(G.earnedBadges.includes(b.id))return;
+    let ok=false;
+    if(b.type==='lessons'&&G.lessons.length>=b.req)ok=true;
+    if(b.type==='xp'&&G.xp>=b.req)ok=true;
+    if(b.type==='codeSubmits'&&G.codeSubmits>=b.req)ok=true;
+    if(b.type==='quizCorrect'&&G.quizCorrect>=b.req)ok=true;
+    if(b.type==='streak'&&G.bestStreak>=b.req)ok=true;
+    if(b.type==='special'&&b.key==='turtleSaved'&&G.turtleSaved)ok=true;
+    if(b.type==='worldDone'){const w=WORLDS.find(x=>x.id===b.req);if(w&&w.topics.every(t=>G.lessons.includes(t.id)))ok=true;}
+    if(ok){G.earnedBadges.push(b.id);newB=b;}
+  });
+  updateUI();return newB;
+}
+
+let quizLevel='easy';
+function setQuizLevel(l,btn){quizLevel=l;document.querySelectorAll('#quizLevelTabs .tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');}
+
+async function startQuiz(){
+  show('quizScreen');
+  document.getElementById('quizLoading').style.display='block';
+  document.getElementById('quizContent').style.display='none';
+  document.getElementById('quizSummary').style.display='none';
+  quizState={qs:[],idx:0,correct:0,level:quizLevel,streak:0};
+  const topicsLearned=G.lessons.length>0?G.lessons.slice(-8).join(', '):'print, variables, if/else';
+  const diffMap={easy:'very simple single-concept for a 7-year-old beginner',medium:'moderate, may involve short code snippets',hard:'challenging, involves predicting output or fixing code'};
+  const sys=`You are a Python quiz generator for kids. Generate exactly 5 Python quiz questions. Difficulty: ${diffMap[quizLevel]}. Topics: ${topicsLearned}. 
+Return ONLY a valid JSON array with no extra text or markdown:
+[{"q":"question","code":"code snippet or empty string","options":["A","B","C","D"],"answer":0,"explain":"short fun explanation"}]
+answer is the index (0-3) of the correct option. Make questions fun with emojis.`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,system:sys,messages:[{role:'user',content:'Generate 5 quiz questions now.'}]})});
+    const data=await r.json();
+    let txt=(data.content?.[0]?.text||'[]').replace(/```json|```/g,'').trim();
+    quizState.qs=JSON.parse(txt);
+  }catch(e){
+    quizState.qs=[
+      {q:'What does print("Hello") do? 🖨️',code:'',options:['Shows Hello on screen','Deletes Hello','Saves a file','Nothing'],answer:0,explain:'print() shows text on screen — like magic! 🎉'},
+      {q:'What is x = 5 called?',code:'',options:['A loop','A variable','A function','A comment'],answer:1,explain:'x = 5 makes a variable — like a magic box storing the number 5!'},
+      {q:'What symbol starts a Python comment?',code:'',options:['//','/*','#','--'],answer:2,explain:'# is the comment symbol — the computer ignores everything after it!'},
+      {q:'What does this print? 🔢',code:'print(3 + 4)',options:['34','7','3+4','Error'],answer:1,explain:'3 + 4 = 7, so Python prints 7!'},
+      {q:'How do you start a function in Python?',code:'',options:['function greet():','def greet():','make greet():','start greet():'],answer:1,explain:'def is the magic word to start a function in Python!'}
+    ];
+  }
+  document.getElementById('quizLoading').style.display='none';
+  document.getElementById('quizContent').style.display='block';
+  renderQuizDots();showQuestion();
+}
+
+function renderQuizDots(){
+  const d=document.getElementById('quizDots');d.innerHTML='';
+  quizState.qs.forEach((_,i)=>{
+    const dot=document.createElement('div');
+    dot.className='q-dot'+(i<quizState.idx?' done':i===quizState.idx?' current':'');
+    d.appendChild(dot);
+  });
+}
+
+function showQuestion(){
+  const q=quizState.qs[quizState.idx];if(!q)return;
+  document.getElementById('quizTopic').textContent='Question '+(quizState.idx+1)+' of '+quizState.qs.length+' · '+quizLevel;
+  document.getElementById('quizQ').textContent=q.q;
+  const cs=document.getElementById('quizCodeSnippet');
+  if(q.code&&q.code.trim()){cs.style.display='block';document.getElementById('quizCode').textContent=q.code;}
+  else cs.style.display='none';
+  document.getElementById('quizFeedback').style.display='none';
+  document.getElementById('quizNext').style.display='none';
+  const opts=document.getElementById('quizOpts');opts.innerHTML='';
+  q.options.forEach((opt,i)=>{
+    const b=document.createElement('button');b.className='quiz-opt';b.textContent=opt;
+    b.onclick=()=>answerQuiz(i,b,q);opts.appendChild(b);
+  });
+  renderQuizDots();
+}
+
+function answerQuiz(i,btn,q){
+  document.querySelectorAll('.quiz-opt').forEach(b=>b.onclick=null);
+  const correct=i===q.answer;
+  btn.className='quiz-opt '+(correct?'correct':'wrong');
+  if(!correct)document.querySelectorAll('.quiz-opt')[q.answer].className='quiz-opt correct';
+  const fb=document.getElementById('quizFeedback');
+  fb.style.display='block';
+  fb.className='quiz-feedback '+(correct?'ok':'bad');
+  fb.textContent=(correct?'🎉 Correct! ':'❌ Not quite — ')+q.explain;
+  if(correct){quizState.correct++;quizState.streak++;G.quizCorrect++;G.currentStreak++;if(G.currentStreak>G.bestStreak)G.bestStreak=G.currentStreak;}
+  else{quizState.streak=0;G.currentStreak=0;}
+  G.quizTotal++;quizState.idx++;
+  document.getElementById('streakBadge').textContent='🔥 '+quizState.streak;
+  const newB=checkBadges();saveG();
+}
+
+function nextQuestion(){
+  if(quizState.idx>=quizState.qs.length){finishQuiz();return;}
+  showQuestion();
+}
+
+function finishQuiz(){
+  const xpGain=quizState.correct*10+(quizState.streak>=3?25:0);
+  G.xp+=xpGain;
+  G.activity.unshift({type:'quiz',name:'Quiz ('+quizLevel+')',xp:xpGain,score:quizState.correct+'/'+quizState.qs.length,time:Date.now()});
+  if(G.activity.length>30)G.activity.pop();
+  const pct=Math.round(quizState.correct/quizState.qs.length*100);
+  const icons=['😅','🙂','😊','🌟','🏆'];
+  document.getElementById('summaryIcon').textContent=icons[Math.min(4,Math.floor(pct/25))];
+  document.getElementById('summaryTitle').textContent=pct>=80?'Amazing score!':pct>=50?'Good work!':'Keep practicing!';
+  document.getElementById('summaryScore').textContent=quizState.correct+' out of '+quizState.qs.length+' correct ('+pct+'%)';
+  document.getElementById('summaryXP').textContent='+'+xpGain+' XP earned!';
+  document.getElementById('quizContent').style.display='none';
+  document.getElementById('quizSummary').style.display='block';
+  checkBadges();saveG();
+}
+
+function initTurtle(){
+  const canvas=document.getElementById('turtleCanvas');if(!canvas)return;
+  turtle.ctx=canvas.getContext('2d');
+  turtle.x=230;turtle.y=150;turtle.angle=0;turtle.penDown=true;
+  turtle.ctx.clearRect(0,0,460,300);turtle.ctx.fillStyle='#fff';turtle.ctx.fillRect(0,0,460,300);
+  drawArrow();
+}
+function drawArrow(){
+  if(!turtle.ctx)return;
+  const c=turtle.ctx;c.save();c.translate(turtle.x,turtle.y);c.rotate((turtle.angle-90)*Math.PI/180);
+  c.fillStyle='#22c55e';c.strokeStyle='#166534';c.lineWidth=1.5;
+  c.beginPath();c.moveTo(0,-10);c.lineTo(7,8);c.lineTo(-7,8);c.closePath();c.fill();c.stroke();c.restore();
+}
+function tFwd(d){if(!turtle.ctx)return;const r=(turtle.angle-90)*Math.PI/180,nx=turtle.x+Math.cos(r)*d,ny=turtle.y+Math.sin(r)*d;if(turtle.penDown){const c=turtle.ctx;c.beginPath();c.strokeStyle=turtle.color;c.lineWidth=2.5;c.lineCap='round';c.moveTo(turtle.x,turtle.y);c.lineTo(nx,ny);c.stroke();}turtle.x=nx;turtle.y=ny;}
+function tRt(d){turtle.angle=(turtle.angle+d)%360}
+function tLt(d){turtle.angle=(turtle.angle-d+360)%360}
+function tCircle(r){if(!turtle.ctx)return;const c=turtle.ctx;c.beginPath();c.strokeStyle=turtle.color;c.lineWidth=2.5;c.arc(turtle.x,turtle.y-Math.abs(r),Math.abs(r),0,2*Math.PI);c.stroke();}
+function resetTurtle(){initTurtle();}
+function runTurtleCode(){
+  if(!turtle.ctx)return;
+  turtle.ctx.clearRect(0,0,460,300);turtle.ctx.fillStyle='#fff';turtle.ctx.fillRect(0,0,460,300);
+  turtle.x=230;turtle.y=150;turtle.angle=0;turtle.penDown=true;
+  document.getElementById('turtleCode').value.split('\n').forEach(line=>{
+    line=line.trim();if(!line||line.startsWith('#'))return;
+    try{
+      if(/^forward\((.+)\)$/.test(line))tFwd(parseFloat(line.match(/\((.+)\)/)[1]));
+      else if(/^backward\((.+)\)$/.test(line))tFwd(-parseFloat(line.match(/\((.+)\)/)[1]));
+      else if(/^right\((.+)\)$/.test(line))tRt(parseFloat(line.match(/\((.+)\)/)[1]));
+      else if(/^left\((.+)\)$/.test(line))tLt(parseFloat(line.match(/\((.+)\)/)[1]));
+      else if(/^circle\((.+)\)$/.test(line))tCircle(parseFloat(line.match(/\((.+)\)/)[1]));
+      else if(line==='penup()')turtle.penDown=false;
+      else if(line==='pendown()')turtle.penDown=true;
+      else if(/^color\(['"](.+)['"]\)$/.test(line))turtle.color=line.match(/['"](.+)['"]/)[1];
+    }catch(e){}
+  });
+  drawArrow();G.codeSubmits++;checkBadges();saveG();
+}
+function saveTurtleArt(){
+  G.turtleSaved=true;G.xp+=10;
+  G.activity.unshift({type:'art',name:'Turtle artwork saved',xp:10,time:Date.now()});
+  if(G.activity.length>30)G.activity.pop();
+  const newB=checkBadges();saveG();
+  document.getElementById('celIcon').textContent='🎨';document.getElementById('celTitle').textContent='Art saved!';
+  document.getElementById('celMsg').textContent='Your turtle drawing earned XP!';document.getElementById('xpGain').textContent='+10 XP!';
+  showNewBadge(newB);show('celebScreen');
+}
+async function askTurtle(){
+  const inp=document.getElementById('turtleAsk');const txt=inp.value.trim();if(!txt)return;inp.value='';
+  addMsg(txt,'user','turtleChatArea');G.turtleHistory.push({role:'user',content:txt});
+  const sys='You are Cody, a friendly Python turtle drawing tutor for a 7-year-old. Explain commands simply: forward(), backward(), right(), left(), circle(), color(), penup(), pendown(). Keep replies to 2-3 sentences. Use fun examples.';
+  await callClaude(sys,'turtleChatArea',G.turtleHistory);
+}
+function showTurtle(){
+  show('turtleScreen');
+  setTimeout(()=>{initTurtle();renderTurtleUI();},100);
+}
+function renderTurtleUI(){
+  const colors=['#10b981','#3b82f6','#ef4444','#f59e0b','#7c3aed','#ec4899','#000000','#f97316','#14b8a6','#84cc16'];
+  const cr=document.getElementById('colorRow');cr.innerHTML='<span style="font-size:11px;color:#64748b;margin-right:4px;font-weight:600">Color:</span>';
+  colors.forEach(col=>{const b=document.createElement('div');b.className='cbox'+(turtle.color===col?' active':'');b.style.background=col;b.onclick=()=>{turtle.color=col;document.querySelectorAll('.cbox').forEach(x=>x.classList.remove('active'));b.classList.add('active');};cr.appendChild(b);});
+  const cmds=[['▶ Forward 50',()=>tFwd(50)],['◀ Back 50',()=>tFwd(-50)],['↻ Right 90',()=>tRt(90)],['↺ Left 90',()=>tLt(90)],['⭕ Circle 40',()=>tCircle(40)],['🔺 Triangle',()=>{for(let i=0;i<3;i++){tFwd(80);tRt(120)}}],['⬛ Square',()=>{for(let i=0;i<4;i++){tFwd(70);tRt(90)}}],['⭐ Star',()=>{for(let i=0;i<5;i++){tFwd(70);tRt(144)}}],['🌸 Flower',()=>{for(let i=0;i<12;i++){tCircle(25);tRt(30)}}],['🌀 Spiral',()=>{for(let i=0;i<20;i++){tFwd(i*4);tRt(30)}}]];
+  const tc=document.getElementById('turtleControls');tc.innerHTML='';
+  cmds.forEach(([label,fn])=>{const b=document.createElement('button');b.className='turtle-btn';b.textContent=label;b.onclick=()=>{fn();drawArrow();};tc.appendChild(b);});
+}
+
+function showBadges(){
+  const g=document.getElementById('badgeGrid');g.innerHTML='';
+  ALL_BADGES.forEach(b=>{
+    const earned=G.earnedBadges.includes(b.id);
+    const d=document.createElement('div');d.className='badge-card '+(earned?'earned':'locked');
+    d.innerHTML=`<div class="badge-icon">${b.icon}</div><div class="badge-name">${b.name}</div><div class="badge-desc">${earned?b.desc:'???'}</div>`;
+    g.appendChild(d);
+  });
+  show('badgeScreen');
+}
+
+function showParentDash(){
+  document.getElementById('parentChildName').textContent=G.kidName+"'s progress";
+  document.querySelectorAll('#dashTabs .tab').forEach((t,i)=>{t.className='tab'+(i===0?' active':'');});
+  ['dashProgress','dashActivity','dashSettings'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('dashOverview').style.display='block';
+  renderDashOverview();
+  show('parentScreen');
+}
+function showDashTab(tab,btn){
+  ['dashOverview','dashProgress','dashActivity','dashSettings'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('dash'+tab.charAt(0).toUpperCase()+tab.slice(1)).style.display='block';
+  document.querySelectorAll('#dashTabs .tab').forEach(t=>t.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  if(tab==='overview')renderDashOverview();
+  if(tab==='progress')renderDashProgress();
+  if(tab==='activity')renderDashActivity();
+}
+function renderDashOverview(){
+  const lv=Math.floor(G.xp/100)+1;
+  const stats=[['⭐',G.xp+' XP','Total XP earned'],['📚',G.lessons.length,'Lessons done'],['🌍',WORLDS.filter(w=>w.topics.every(t=>G.lessons.includes(t.id))).length,'Worlds complete'],['⚡',G.quizTotal,'Quizzes taken'],['🏅',G.earnedBadges.length,'Badges earned'],['🔥',G.bestStreak,'Best quiz streak'],['💻',G.codeSubmits,'Code submitted'],['🎨',G.turtleSaved?'Yes':'No','Turtle art saved']];
+  const sg=document.getElementById('statsGrid');sg.innerHTML='';
+  stats.forEach(([ic,num,lbl])=>{const d=document.createElement('div');d.className='stat-card';d.innerHTML=`<div class="stat-num">${ic} ${num}</div><div class="stat-label">${lbl}</div>`;sg.appendChild(d);});
+  const al=document.getElementById('activityLog');al.innerHTML='';
+  if(!G.activity.length){al.innerHTML='<p style="font-size:13px;color:#94a3b8;padding:1rem 0">No activity yet — encourage your child to start learning!</p>';return;}
+  G.activity.slice(0,10).forEach(a=>{
+    const d=document.createElement('div');d.className='activity-row';
+    const icons={lesson:'📚',quiz:'⚡',art:'🎨'};
+    const time=new Date(a.time);const ts=time.toLocaleDateString()+' '+time.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    d.innerHTML=`<span style="font-size:16px">${icons[a.type]||'📌'}</span><span style="flex:1;font-weight:500">${a.name}</span>${a.score?`<span style="font-size:11px;color:#94a3b8">${a.score}</span>`:''}<span style="font-size:11px;color:#10b981;font-weight:700">+${a.xp} XP</span><span style="font-size:10px;color:#94a3b8;margin-left:6px">${ts}</span>`;
+    al.appendChild(d);
+  });
+}
+function renderDashProgress(){
+  const wp=document.getElementById('worldProgress');wp.innerHTML='';
+  WORLDS.forEach(w=>{
+    const done=w.topics.filter(t=>G.lessons.includes(t.id)).length;
+    const pct=Math.round(done/w.topics.length*100);
+    const locked=G.xp<w.minXP;
+    const d=document.createElement('div');d.className='progress-world';
+    d.innerHTML=`<div class="pw-header"><span>${w.icon} ${w.name} ${locked?'🔒':''}</span><span style="color:#94a3b8;font-size:12px">${done}/${w.topics.length} · ${pct}%</span></div><div class="pw-bar"><div class="pw-fill" style="width:${pct}%"></div></div>`;
+    wp.appendChild(d);
+  });
+}
+function renderDashActivity(){
+  document.getElementById('dQuizTotal').textContent=G.quizTotal;
+  document.getElementById('dQuizCorrect').textContent=G.quizCorrect;
+  document.getElementById('dQuizStreak').textContent=G.bestStreak;
+  document.getElementById('dQuizPct').textContent=G.quizTotal?Math.round(G.quizCorrect/G.quizTotal*100)+'%':'0%';
+  const pg=document.getElementById('parentBadgeGrid');pg.innerHTML='';
+  ALL_BADGES.forEach(b=>{
+    const earned=G.earnedBadges.includes(b.id);
+    const d=document.createElement('div');d.className='badge-card '+(earned?'earned':'locked');
+    d.innerHTML=`<div class="badge-icon">${b.icon}</div><div class="badge-name">${b.name}</div><div class="badge-desc">${earned?b.desc:'Locked'}</div>`;
+    pg.appendChild(d);
+  });
+}
+function savePin(){
+  const p1=document.getElementById('newPin1').value.trim(),p2=document.getElementById('newPin2').value.trim(),msg=document.getElementById('pinMsg');
+  if(!p1||p1.length<4){msg.textContent='PIN must be 4-6 digits';msg.style.color='#ef4444';return;}
+  if(p1!==p2){msg.textContent='PINs do not match';msg.style.color='#ef4444';return;}
+  G.parentPin=p1;saveG();msg.textContent='✓ PIN saved successfully!';msg.style.color='#10b981';
+}
+function resetProgress(){
+  if(!confirm('Reset ALL progress for '+G.kidName+'?\n\nThis cannot be undone!'))return;
+  const name=G.kidName,pin=G.parentPin;
+  G={kidName:name,parentPin:pin,xp:0,lessons:[],earnedBadges:[],codeSubmits:0,turtleSaved:false,quizCorrect:0,quizTotal:0,bestStreak:0,currentStreak:0,activity:[],selectedWorld:'w1',selectedTopic:null,history:[],turtleHistory:[]};
+  saveG();alert('Progress reset for '+name);showParentDash();
+}
+
+function addMsg(text,who,areaId){
+  const area=document.getElementById(areaId);if(!area)return;
+  const div=document.createElement('div');div.className='msg '+(who==='user'?'user':'');
+  const av=document.createElement('div');av.className='av '+(who==='user'?'usr':'bot');av.textContent=who==='user'?'Me':'C';
+  const bub=document.createElement('div');bub.className='bub';bub.innerHTML=fmt(text);
+  div.appendChild(av);div.appendChild(bub);area.appendChild(div);area.scrollTop=area.scrollHeight;
+}
+function addTyping(areaId){
+  const area=document.getElementById(areaId);if(!area)return{remove:()=>{}};
+  const div=document.createElement('div');div.className='msg';
+  div.innerHTML='<div class="av bot">C</div><div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+  area.appendChild(div);area.scrollTop=area.scrollHeight;return div;
+}
+function fmt(t){
+  t=t.replace(/```python\n?([\s\S]*?)```/g,'<pre>$1</pre>');
+  t=t.replace(/```\n?([\s\S]*?)```/g,'<pre>$1</pre>');
+  t=t.replace(/`([^`]+)`/g,'<code>$1</code>');
+  t=t.replace(/\n/g,'<br>');return t;
+}
+function rnd(arr){return arr[Math.floor(Math.random()*arr.length)];}
+</script>
+</body>
+</html>
