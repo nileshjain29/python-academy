@@ -108,8 +108,8 @@ input[type=text]:focus,input[type=password]:focus{border-color:#3b82f6}
 .tab.active{background:#3b82f6;color:#fff;border-color:#3b82f6}
 
 .quiz-feedback{margin-top:10px;padding:12px;border-radius:10px;font-size:13px;font-weight:500}
-.quiz-feedback.correct{background:#d1fae5;color:#065f46}
-.quiz-feedback.wrong{background:#fee2e2;color:#991b1b}
+.quiz-feedback.ok{background:#d1fae5;color:#065f46}
+.quiz-feedback.bad{background:#fee2e2;color:#991b1b}
 </style>
 </head>
 <body>
@@ -128,7 +128,7 @@ input[type=text]:focus,input[type=password]:focus{border-color:#3b82f6}
     <div id="kidLoginForm">
       <input type="text" id="kidName" placeholder="Your name (e.g. Max)" maxlength="20" onblur="prefillApiKey(this.value.trim())" style="width:100%;margin-bottom:8px;display:block">
       <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px">Google Gemini API Key — <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#60a5fa">get free key here</a>:</div>
-      <input type="password" id="apiKeyInput" placeholder="AIzaapi03-..." style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:10px 14px;color:#fffffe;font-size:13px;font-family:inherit;outline:none;margin-bottom:4px;display:block">
+      <input type="password" id="apiKeyInput" placeholder="AIzaSy... (paste your key here)" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:10px 14px;color:#fffffe;font-size:13px;font-family:inherit;outline:none;margin-bottom:4px;display:block">
       <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-bottom:10px">100% free. Saved on this device only. Never shared with anyone.</div>
       <button class="btn btn-blue" style="width:100%;padding:12px;font-size:14px" onclick="loginKid()">🚀 Start Adventure!</button>
     </div>
@@ -457,8 +457,6 @@ let turtle={x:230,y:150,angle:0,penDown:true,color:'#10b981',ctx:null};
 let loginMode='kid';
 
 function getApiKey(){return localStorage.getItem('pya_apikey_'+G.kidName)||'';}
-function prefillApiKey(name){const k=localStorage.getItem('pya_apikey_'+name);if(k){const el=document.getElementById('apiKeyInput');if(el)el.value=k;}}
-
 function saveG(){try{const s={...G};delete s.history;delete s.turtleHistory;localStorage.setItem('pyacademy_v3_'+G.kidName,JSON.stringify(s));}catch(e){}}
 function loadG(name){
   try{
@@ -488,7 +486,7 @@ function loginKid(){
   if(!k){alert('Please enter your Gemini API key!\nGet a free one at aistudio.google.com');return;}
   if(!k.startsWith('AIza')){alert('Gemini key should start with AIza\nGet yours free at aistudio.google.com');return;}
   localStorage.setItem('pya_apikey_'+n,k);
-  loadG(n);G.kidName=n;ui();renderWorlds();show('homeScreen');
+  loadG(n);G.kidName=n;updateUI();renderWorlds();show('homeScreen');
 }
 
 function loginParent(){
@@ -521,7 +519,7 @@ function renderWorlds(){
     const d=document.createElement('div');
     d.className='lcard'+(locked?' locked':'')+(G.selectedWorld===w.id?' selected':'');
     const done=w.topics.filter(t=>G.lessons.includes(t.id)).length;
-    d.innerHTML=`<div class="lcard-icon">${w.icon}</div><div class="lcard-name">${w.name}</div><div class="lcard-sub">${done}/${w.topics.length} done</div>${locked?`<div style="font-size:10px;color:#94a3b8;margin-top:3px">🔒 ${w.minXP} XP</div>`:''}`;
+    d.innerHTML='<div class="lcard-icon">'+w.icon+'</div><div class="lcard-name">'+w.name+'</div><div class="lcard-sub">'+done+'/'+w.topics.length+' done'+(locked?'<div style="font-size:10px;color:#94a3b8;margin-top:3px">🔒 '+w.minXP+' XP</div>':'')+'</div>';
     if(!locked)d.onclick=()=>{G.selectedWorld=w.id;renderWorlds();};
     c.appendChild(d);
   });
@@ -664,7 +662,7 @@ answer is the index (0-3) of the correct option. Make questions fun with emojis.
     const body={system_instruction:{parts:[{text:sys}]},contents:[{role:'user',parts:[{text:'Generate 5 quiz questions now.'}]}],generationConfig:{maxOutputTokens:1500,temperature:0.7}};
     const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const data=await r.json();
-    let txt=(data.content?.[0]?.text||'[]').replace(/```json|```/g,'').trim();
+    let txt=(data.candidates?.[0]?.content?.parts?.[0]?.text||'[]').replace(/```json|```/g,'').trim();
     quizState.qs=JSON.parse(txt);
   }catch(e){
     quizState.qs=[
