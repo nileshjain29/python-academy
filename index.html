@@ -129,7 +129,10 @@ input[type=text]:focus,input[type=password]:focus{border-color:#3b82f6}
       <input type="text" id="kidName" placeholder="Your name (e.g. Max)" maxlength="20" onblur="prefillApiKey(this.value.trim())" style="width:100%;margin-bottom:8px;display:block">
       <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px">Google Gemini API Key — <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#60a5fa">get free key here</a>:</div>
       <input type="password" id="apiKeyInput" placeholder="AIzaSy... (paste your key here)" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:10px 14px;color:#fffffe;font-size:13px;font-family:inherit;outline:none;margin-bottom:4px;display:block">
-      <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-bottom:10px">100% free. Saved on this device only. Never shared with anyone.</div>
+      <div style="display:flex;gap:6px;margin-bottom:4px">
+        <button type="button" onclick="testApiKey()" style="flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#a0aec0;font-size:12px;cursor:pointer;font-family:inherit">🔑 Test Key</button>
+      </div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-bottom:10px" id="keyTestResult">100% free. Saved on this device only.</div>
       <button class="btn btn-blue" style="width:100%;padding:12px;font-size:14px" onclick="loginKid()">🚀 Start Adventure!</button>
     </div>
     <div id="parentLoginForm" style="display:none">
@@ -585,23 +588,93 @@ async function getHint(){
 }
 
 
+
+async function testApiKey() {
+  const k = document.getElementById('apiKeyInput').value.trim();
+  const resultEl = document.getElementById('keyTestResult');
+  if (!k) { resultEl.textContent = '⚠️ Enter your API key first'; resultEl.style.color='#f6ad55'; return; }
+  if (!k.startsWith('AIza')) { resultEl.textContent = '⚠️ Key should start with AIza'; resultEl.style.color='#f6ad55'; return; }
+  resultEl.textContent = '⏳ Testing...'; resultEl.style.color='#a0aec0';
+  const models = ['gemini-2.0-flash-exp','gemini-1.5-flash-8b','gemini-1.5-flash-002','gemini-1.5-flash','gemini-pro'];
+  for (const model of models) {
+    try {
+      const url = 'https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+k;
+      const r = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({contents:[{role:'user',parts:[{text:'Say OK'}]}], generationConfig:{maxOutputTokens:5}})});
+      const d = await r.json();
+      if (d.error) {
+        const msg = d.error.message||'';
+        if (msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED')) {
+          resultEl.textContent = '❌ Quota exceeded. Create new key at aistudio.google.com/app/apikey (use NEW project)';
+          resultEl.style.color='#f87171'; return;
+        }
+        if (msg.includes('API_KEY_INVALID') || d.error.code===400) {
+          resultEl.textContent = '❌ Invalid API key. Get one at aistudio.google.com/app/apikey';
+          resultEl.style.color='#f87171'; return;
+        }
+        if (d.error.code===404 || msg.includes('not found')) continue;
+        resultEl.textContent = '❌ Error: '+msg.slice(0,80);
+        resultEl.style.color='#f87171'; return;
+      }
+      resultEl.textContent = '✅ Key works! Using model: '+model;
+      resultEl.style.color='#48bb78'; return;
+    } catch(e) { continue; }
+  }
+  resultEl.textContent = '❌ All models failed. Key may be restricted or region not supported.';
+  resultEl.style.color='#f87171';
+}
 async function geminiRequest(key, body) {
-  const models = ['gemini-1.5-flash-002','gemini-1.5-flash','gemini-1.5-pro-002','gemini-1.5-pro'];
+  const models = [
+    'gemini-2.0-flash-exp',
+    'gemini-1.5-flash-8b',
+    'gemini-1.5-flash-8b-001',
+    'gemini-1.5-flash-002',
+    'gemini-1.5-flash-001',
+    'gemini-1.5-flash',
+    'gemini-1.5-pro-002',
+    'gemini-1.5-pro-001',
+    'gemini-1.5-pro',
+    'gemini-pro'
+  ];
+  const errors = [];
+
   for (const model of models) {
     try {
       const url = 'https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+key;
-      const r = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+
+      // Build body without system_instruction for maximum compatibility
+      // Inject system prompt as first user message instead
+      let reqBody = body;
+      if (body.system_instruction) {
+        const sysText = body.system_instruction.parts[0].text;
+        const contents = [{role:'user', parts:[{text:'[System instructions]: '+sysText+'
+
+[User]: '+(body.contents[0]?.parts[0]?.text||'Hello')}]},
+          ...body.contents.slice(1)];
+        reqBody = {contents, generationConfig: body.generationConfig};
+      }
+
+      const r = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(reqBody)});
       const d = await r.json();
+
       if (d.error) {
-        const code = d.error.code||0;
-        const msg  = d.error.message||'';
-        if (code===404 || msg.includes('not found') || msg.includes('not supported')) continue;
-        return d;
+        const msg = d.error.message||'unknown error';
+        errors.push(model+': '+msg.slice(0,80));
+        if (d.error.code===429 || msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED')) {
+          return {error:{message:'Quota exceeded for your API key. Please create a new key at aistudio.google.com/app/apikey (click Create API key in NEW project)'}};
+        }
+        if (d.error.code===400 && msg.includes('API_KEY_INVALID')) {
+          return {error:{message:'Invalid API key. Please get a new key at aistudio.google.com/app/apikey'}};
+        }
+        continue;
       }
       return d;
-    } catch(e) { continue; }
+    } catch(e) {
+      errors.push(model+': '+e.message.slice(0,60));
+      continue;
+    }
   }
-  return {error:{message:'No working Gemini model found. Please create a new API key at aistudio.google.com/app/apikey'}};
+  return {error:{message:'All models failed. Errors: '+errors.slice(0,3).join(' | ')}};
 }
 async function callClaude(sys,areaId,hist){
   const typEl=addTyping(areaId);
