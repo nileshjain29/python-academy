@@ -126,8 +126,11 @@ input[type=text]:focus,input[type=password]:focus{border-color:#3b82f6}
       <button class="tab" onclick="setLoginMode('parent')" id="tabParent">I am the parent</button>
     </div>
     <div id="kidLoginForm">
-      <input type="text" id="kidName" placeholder="Your name (e.g. Max)" maxlength="20" style="width:100%;margin-bottom:10px;display:block">
-      <button class="btn btn-blue" style="width:100%" onclick="loginKid()">Start learning! 🚀</button>
+      <input type="text" id="kidName" placeholder="Your name (e.g. Max)" maxlength="20" onblur="prefillApiKey(this.value.trim())" style="width:100%;margin-bottom:8px;display:block">
+      <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px">Google Gemini API Key — <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#60a5fa">get free key here</a>:</div>
+      <input type="password" id="apiKeyInput" placeholder="AIzaapi03-..." style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:10px 14px;color:#fffffe;font-size:13px;font-family:inherit;outline:none;margin-bottom:4px;display:block">
+      <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-bottom:10px">100% free. Saved on this device only. Never shared with anyone.</div>
+      <button class="btn btn-blue" style="width:100%;padding:12px;font-size:14px" onclick="loginKid()">🚀 Start Adventure!</button>
     </div>
     <div id="parentLoginForm" style="display:none">
       <input type="text" id="parentKidName" placeholder="Child's name" maxlength="20" style="width:100%;margin-bottom:8px;display:block">
@@ -329,6 +332,13 @@ input[type=text]:focus,input[type=password]:focus{border-color:#3b82f6}
   </div>
   <div id="dashSettings" style="display:none">
     <div class="card" style="margin-bottom:0.8rem">
+      <h3 style="margin-bottom:0.75rem">API Key</h3>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:0.75rem">Update your Google Gemini API key.</p>
+      <input type="password" id="newApiKey" placeholder="AIza..." style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:var(--text);font-size:13px;font-family:inherit;outline:none;margin-bottom:8px;display:block">
+      <button class="btn btn-blue" onclick="saveApiKey()">Save Key</button>
+      <p style="font-size:11px;margin-top:6px" id="apiKeyMsg"></p>
+    </div>
+    <div class="card" style="margin-bottom:0.8rem">
       <h3 style="margin-bottom:0.75rem">Change parent PIN</h3>
       <input type="password" id="newPin1" placeholder="New PIN (4-6 digits)" style="width:100%;margin-bottom:8px;display:block">
       <input type="password" id="newPin2" placeholder="Confirm PIN" style="width:100%;margin-bottom:10px;display:block">
@@ -446,6 +456,9 @@ let quizState={qs:[],idx:0,correct:0,level:'easy',streak:0};
 let turtle={x:230,y:150,angle:0,penDown:true,color:'#10b981',ctx:null};
 let loginMode='kid';
 
+function getApiKey(){return localStorage.getItem('pya_apikey_'+G.kidName)||'';}
+function prefillApiKey(name){const k=localStorage.getItem('pya_apikey_'+name);if(k){const el=document.getElementById('apiKeyInput');if(el)el.value=k;}}
+
 function saveG(){try{const s={...G};delete s.history;delete s.turtleHistory;localStorage.setItem('pyacademy_v3_'+G.kidName,JSON.stringify(s));}catch(e){}}
 function loadG(name){
   try{
@@ -453,6 +466,11 @@ function loadG(name){
     if(d){const p=JSON.parse(d);G={...p,kidName:name,history:[],turtleHistory:[]};}
     else{G={kidName:name,parentPin:'1234',xp:0,lessons:[],earnedBadges:[],codeSubmits:0,turtleSaved:false,quizCorrect:0,quizTotal:0,bestStreak:0,currentStreak:0,activity:[],selectedWorld:'w1',selectedTopic:null,history:[],turtleHistory:[]};}
   }catch(e){}
+}
+
+function prefillApiKey(name){
+  const k=localStorage.getItem('pya_apikey_'+name);
+  if(k){const el=document.getElementById('apiKeyInput');if(el)el.value=k;}
 }
 
 function setLoginMode(m){
@@ -466,7 +484,11 @@ function setLoginMode(m){
 function loginKid(){
   const n=document.getElementById('kidName').value.trim();
   if(!n){alert('Please enter your name!');return;}
-  loadG(n);updateUI();renderWorlds();show('homeScreen');
+  const k=document.getElementById('apiKeyInput').value.trim();
+  if(!k){alert('Please enter your Gemini API key!\nGet a free one at aistudio.google.com');return;}
+  if(!k.startsWith('AIza')){alert('Gemini key should start with AIza\nGet yours free at aistudio.google.com');return;}
+  localStorage.setItem('pya_apikey_'+n,k);
+  loadG(n);G.kidName=n;ui();renderWorlds();show('homeScreen');
 }
 
 function loginParent(){
@@ -567,16 +589,20 @@ async function getHint(){
 async function callClaude(sys,areaId,hist){
   const typEl=addTyping(areaId);
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:hist})});
+    const key=getApiKey();
+    if(!key){throw new Error('No API key — add it in Parent Dashboard → Settings');}
+    const contents=hist.map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content}]}));
+    const body2={system_instruction:{parts:[{text:sys}]},contents,generationConfig:{maxOutputTokens:1000,temperature:0.8}};
+    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body2)});
     const data=await r.json();typEl.remove();
-    const reply=data.content?.[0]?.text||'Oops, something went wrong! Try again.';
+    if(data.error){throw new Error(data.error.message||'API error');}
+    const reply=data.candidates?.[0]?.content?.parts?.[0]?.text||'Oops, something went wrong! Try again.';
     hist.push({role:'assistant',content:reply});
     addMsg(reply,'bot',areaId);
     if(areaId==='chatWrap'&&reply.toLowerCase().includes('lesson complete')){
       setTimeout(completedLesson,1400);
     }
-  }catch(e){typEl.remove();addMsg('Connection issue — please try again!','bot',areaId);}
+  }catch(e){typEl.remove();addMsg('❌ Connection error: '+e.message+'. Check your API key is correct in Settings.','bot',areaId);}
 }
 
 function completedLesson(){
@@ -633,8 +659,10 @@ Return ONLY a valid JSON array with no extra text or markdown:
 [{"q":"question","code":"code snippet or empty string","options":["A","B","C","D"],"answer":0,"explain":"short fun explanation"}]
 answer is the index (0-3) of the correct option. Make questions fun with emojis.`;
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,system:sys,messages:[{role:'user',content:'Generate 5 quiz questions now.'}]})});
+    const key=getApiKey();
+    if(!key){document.getElementById('quizLoading').innerHTML='<div style="color:#f87171">❌ Please enter your Gemini API key on the login screen.</div>';return;}
+    const body={system_instruction:{parts:[{text:sys}]},contents:[{role:'user',parts:[{text:'Generate 5 quiz questions now.'}]}],generationConfig:{maxOutputTokens:1500,temperature:0.7}};
+    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const data=await r.json();
     let txt=(data.content?.[0]?.text||'[]').replace(/```json|```/g,'').trim();
     quizState.qs=JSON.parse(txt);
@@ -847,6 +875,14 @@ function renderDashActivity(){
     pg.appendChild(d);
   });
 }
+function saveApiKey(){
+  const k=document.getElementById('newApiKey').value.trim();
+  const msg=document.getElementById('apiKeyMsg');
+  if(!k||!k.startsWith('AIza')){msg.textContent='Invalid Gemini key — must start with AIza';msg.style.color='#f87171';return;}
+  localStorage.setItem('pya_apikey_'+G.kidName,k);
+  msg.textContent='✓ API key saved!';msg.style.color='#34d399';
+}
+
 function savePin(){
   const p1=document.getElementById('newPin1').value.trim(),p2=document.getElementById('newPin2').value.trim(),msg=document.getElementById('pinMsg');
   if(!p1||p1.length<4){msg.textContent='PIN must be 4-6 digits';msg.style.color='#ef4444';return;}
