@@ -591,7 +591,7 @@ async function callClaude(sys,areaId,hist){
     if(!key){throw new Error('No API key — add it in Parent Dashboard → Settings');}
     const contents=hist.map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content}]}));
     const body2={system_instruction:{parts:[{text:sys}]},contents,generationConfig:{maxOutputTokens:1000,temperature:0.8}};
-    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body2)});
+    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body2)});
     const data=await r.json();typEl.remove();
     if(data.error){throw new Error(data.error.message||'API error');}
     const reply=data.candidates?.[0]?.content?.parts?.[0]?.text||'Oops, something went wrong! Try again.';
@@ -660,7 +660,7 @@ answer is the index (0-3) of the correct option. Make questions fun with emojis.
     const key=getApiKey();
     if(!key){document.getElementById('quizLoading').innerHTML='<div style="color:#f87171">❌ Please enter your Gemini API key on the login screen.</div>';return;}
     const body={system_instruction:{parts:[{text:sys}]},contents:[{role:'user',parts:[{text:'Generate 5 quiz questions now.'}]}],generationConfig:{maxOutputTokens:1500,temperature:0.7}};
-    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const data=await r.json();
     let txt=(data.candidates?.[0]?.content?.parts?.[0]?.text||'[]').replace(/```json|```/g,'').trim();
     quizState.qs=JSON.parse(txt);
